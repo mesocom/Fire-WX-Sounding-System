@@ -3,8 +3,8 @@ import numpy as np
 import re
 
 # Define the input and output file paths
-input_file = './FASMEE_MAN_CREEK_0340_B2.txt'
-output_file = './sounding_data.csv'
+input_file = 'input_graw.txt'
+output_file = 'output_standard.csv'
 
 # Read the data
 data = pd.read_csv(input_file, sep='\t', encoding = 'Latin')
@@ -20,22 +20,22 @@ def clean_data(value):
 data = data.applymap(clean_data)
 
 # Convert necessary columns to float
-data['P [h Pa]'] = data['P [h Pa]'].astype(float)
+data['P [hPa]'] = data['P [hPa]'].astype(float)
 data['T [°C]'] = data['T [°C]'].astype(float)
 data['Dew [°C]'] = data['Dew [°C]'].astype(float)
-data['Wsp [kn]'] = data['Wsp [kn]'].astype(float)
-data['Wdir [°]'] = data['Wdir [°]'].astype(float)
-data['Altitude [m]'] = data['Altitude [m]'].astype(float)
+data['Ws [m/s]'] = data['Ws [m/s]'].astype(float)
+data['Wd [°]'] = data['Wd [°]'].astype(float)
+data['Geopot [m]'] = data['Geopot [m]'].astype(float)
 
 
 # Rename the columns to match the expected format
 data.rename(columns={
-    'P [h Pa]': 'pressure',
+    'P [hPa]': 'pressure',
     'T [°C]': 'temperature',
     'Dew [°C]': 'dewpoint',
-    'Wsp [kn]': 'wind_speed',
-    'Wdir [°]': 'wind_direction',
-    'Altitude [m]': "altitude"
+    'Ws [m/s]': 'wind_speed',
+    'Wd [°]': 'wind_direction',
+    'Geopot [m]': "altitude"
 }, inplace=True)
 
 # Calculate u and v wind components and round to 3 decimal points

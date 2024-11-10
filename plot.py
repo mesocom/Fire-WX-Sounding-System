@@ -14,22 +14,33 @@ from firesounding import *
 # Config
 ##################
 
+# Plot configuration
 facecolor = 'white'
 textcolor = 'black'
-
 dpi = 250
 
-# Define RAOB standard / other desired levels in hPa
+# Define RAOB standard / other desired levels in hPa - for winds only
 raob_levels = np.array([1000, 925, 850, 800, 750, 700, 650, 600, 550, 500, 450, 400, 350, 300, 250, 200, 150, 100, 70, 50, 30, 20, 10]) * units.hPa
 
+# Maximum velocity for hodographs in knots
 hodo_max_velocity_kts = 100
 
-# Define the input file path
-input_file = './sounding_data.csv'
+# Min and Max temps at lowest level of plot
+min_temperature = -40
+max_temperature = 40
+
+# Temp and Td plot step if there are weird plotting artifacts
+t_td_plot_step = 25
+
+# File paths
+input_file = 'input_sounding.csv'
+output_file = 'output_skewt.png'
 logo1_path = './logo1.png'  # Replace with your actual logo file path
 logo2_path = './logo2.png'  # Replace with your actual logo file path
-info_text = 'FAMSEE Man Creek 0340 Launch 2'
-output_file = 'sounding_plot.png'
+
+# Sounding info
+info_text = 'Event name etc.'
+info_text_2 = 'Sounding number and time'
 
 
 ##################
@@ -38,6 +49,9 @@ output_file = 'sounding_plot.png'
 
 # Read the data
 data = pd.read_csv(input_file)
+
+# Remove data where pressure level starts increasing (i.e., balloon descent)
+data = data[data['pressure'].diff() < 0].reset_index(drop=True)
 
 # Ensure the data is sorted by pressure in descending order
 data = data.sort_values(by='pressure', ascending=False)
@@ -52,8 +66,8 @@ data = data[(data[['pressure', 'temperature', 'dewpoint', 'u_wind', 'v_wind']] !
 pressure = data['pressure'].values * units.hPa
 temperature = data['temperature'].values * units.degC
 dewpoint = data['dewpoint'].values * units.degC
-u_wind = data['u_wind'].values * units.knots
-v_wind = data['v_wind'].values * units.knots
+u_wind = (data['u_wind'].values * units.meter_per_second).to(units.knots)
+v_wind = (data['v_wind'].values * units.meter_per_second).to(units.knots)
 
 
 ##################
@@ -90,6 +104,7 @@ skew.ax.set_facecolor(facecolor)
 skew.plot(pressure, temperature, 'r')
 skew.plot(pressure, dewpoint, 'g')
 
+
 # Filter data to the specified RAOB + custom pressure levels
 closest_levels = []
 for level in raob_levels:
@@ -98,14 +113,14 @@ for level in raob_levels:
 
 closest_levels = np.unique(closest_levels)  # Remove duplicates
 
-# Filter the data to only include the closest levels
+# Filter wind data to only include the closest levels
 pressure_filtered = pressure[closest_levels]
 u_wind_filtered = u_wind[closest_levels]
 v_wind_filtered = v_wind[closest_levels]
 
 # Plot wind barbs at the filtered pressure levels
 skew.plot_barbs(pressure_filtered, u_wind_filtered, v_wind_filtered,
-	length=5, sizes=dict(emptybarb=0.1, spacing=0.2, height=0.4, width=0.1))
+    length=5, sizes=dict(emptybarb=0.1, spacing=0.2, height=0.4, width=0.1))
 
 skew.ax.set_ylim(1050, 100)
 
@@ -115,7 +130,7 @@ skew.plot_moist_adiabats(linewidth=0.5)
 skew.plot_mixing_lines(linewidth=0.5)
 
 # Good bounds for aspect ratio
-skew.ax.set_xlim(-30, 50)
+skew.ax.set_xlim(min_temperature, max_temperature)
 
 skew.ax.set_xlabel('')
 skew.ax.set_ylabel('')
@@ -263,8 +278,8 @@ logo1_size = (int(logo1.width * logo1_scale), int(logo1.height * logo1_scale))
 logo2_size = (int(logo2.width * logo2_scale), int(logo2.height * logo2_scale))
 
 # Resize the logos
-logo1 = logo1.resize(logo1_size, Image.ANTIALIAS)
-logo2 = logo2.resize(logo2_size, Image.ANTIALIAS)
+logo1 = logo1.resize(logo1_size, Image.LANCZOS)
+logo2 = logo2.resize(logo2_size, Image.LANCZOS)
 
 # Add logos to the figure
 fig_width, fig_height = fig.get_size_inches() * dpi
@@ -273,6 +288,7 @@ fig.figimage(logo1, 20, fig_height - logo1.height*height_factor, zorder=1)
 fig.figimage(logo2, logo1.width + 30, fig_height - logo2.height*height_factor, zorder=1)
 
 # Add info text
+fig.text(0.95, 0.92, info_text_2, horizontalalignment='right', verticalalignment='top', color=textcolor, fontsize=10)
 fig.text(0.95, 0.95, info_text, horizontalalignment='right', verticalalignment='top', color=textcolor, fontsize=10)
 
 
