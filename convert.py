@@ -4,7 +4,7 @@ import re
 
 # Define the input and output file paths
 input_file = 'input_graw.txt'
-output_file = 'output_standard.csv'
+output_file = 'output.csv'
 
 # Read the data
 data = pd.read_csv(input_file, sep='\t', encoding = 'Latin')
@@ -17,7 +17,7 @@ def clean_data(value):
     return value
 
 # Apply the cleaning function to all data
-data = data.applymap(clean_data)
+data = data.apply(clean_data)
 
 # Convert necessary columns to float
 data['P [hPa]'] = data['P [hPa]'].astype(float)

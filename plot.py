@@ -33,14 +33,14 @@ max_temperature = 40
 t_td_plot_step = 25
 
 # File paths
-input_file = 'input_sounding.csv'
-output_file = 'output_skewt.png'
+input_file = 'input.csv'
+output_file = 'input.png'
 logo1_path = './logo1.png'  # Replace with your actual logo file path
 logo2_path = './logo2.png'  # Replace with your actual logo file path
 
 # Sounding info
-info_text = 'Event name etc.'
-info_text_2 = 'Sounding number and time'
+info_text = 'Event info'
+info_text_2 = 'Sounding # - time z'
 
 
 ##################
@@ -69,6 +69,9 @@ dewpoint = data['dewpoint'].values * units.degC
 u_wind = (data['u_wind'].values * units.meter_per_second).to(units.knots)
 v_wind = (data['v_wind'].values * units.meter_per_second).to(units.knots)
 
+# Correct wind direction by reversing the signs of u_wind and v_wind
+u_wind = -u_wind
+v_wind = -v_wind
 
 ##################
 # Global figure
@@ -256,7 +259,6 @@ indices_text = (
     f"Sfc T: {temperature.magnitude[0]:.1f} °C\n"
     f"Sfc RH: {rh.magnitude[0]:.0f} %\n"
     f"Sfc DD: {dew_point_dep.magnitude[0]:.1f} °C\n"
-
 )
 
 indices_ax.text(0.5, 0.5, indices_text, horizontalalignment='center', verticalalignment='center',
